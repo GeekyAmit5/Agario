@@ -5,66 +5,57 @@ import random
 
 
 class blob:
-    def __init__(self, color, radius=30):
+    def __init__(self):
         self.x = 500
         self.y = 300
-        self.color = color
-        self.radius = radius
+        self.radius = 30
         self.area = math.pi * self.radius**2
+        self.color = red
 
     def show(self):
         self.radius = int(math.sqrt(self.area / math.pi))
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+        pygame.draw.circle(win, self.color, (500, 300), self.radius)
 
 
 class food:
-    def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
+    def __init__(self):
+        self.x = random.randint(-1910, 1910)
+        self.y = random.randint(-1080, 1080)
         self.radius = random.randint(1, 5)
         self.area = math.pi * self.radius**2
-        self.color = color
+        self.color = random.choice([white, black, red, green, blue, yellow])
 
     def show(self):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 
 class bot:
-    def __init__(self, color):
+    def __init__(self):
         self.x = random.randint(-1900, 1900)
         self.y = random.randint(-1050, 1050)
-        self.radius = random.randint(5, 10)
+        self.radius = random.randint(10, 50)
         self.area = math.pi * self.radius**2
-        self.color = color
+        self.color = random.choice([white, black, red, green, blue, yellow])
 
     def show(self):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 
-def isCollide(f, b):
-    if (b.x-f.x)**2 + (b.x-f.y)**2 < b.radius**2:
-        return True
-    return False
-
-
-def isBotCollide(f, b):
-    if (b.x-f.x)**2 + (b.x-f.y)**2 < 20:
+def isCollide(f, b, c):
+    if (b.x-f.x)**2 + (b.y-f.y)**2 < c:
         return True
     return False
 
 
 def main():
     global bgx, bgy
-    b1 = blob(white)
+    b1 = blob()
     foods = []
-    for i in range(foodnum):
-        f = food(random.randint(-1910, 1910),
-                 random.randint(-1080, 1080), random.choice([white, black, red, green, blue, yellow]))
-        foods.append(f)
+    for i in range(1000):
+        foods.append(food())
     bots = []
-    for i in range(50):
-        b = bot(random.choice([white, black, red, green, blue, yellow]))
-        bots.append(b)
+    for i in range(30):
+        bots.append(bot())
     while True:
         win.blit(bg, (bgx, bgy))
         b1.show()
@@ -73,7 +64,6 @@ def main():
                 pygame.quit()
                 sys.exit()
         mx, my = pygame.mouse.get_pos()
-
         if mx < 450 and bgx < 450 - b1.radius:
             changex = speed
         elif mx > 550 and bgx > -3350 + b1.radius:
@@ -94,21 +84,23 @@ def main():
             f.show()
             f.x += changex
             f.y += changey
-            if isCollide(f, b1):
+            if (500-f.x)**2 + (300-f.y)**2 < b1.radius**2:
                 b1.area += f.area
                 f.x = random.randint(-1910, 1910)
                 f.y = random.randint(-1080, 1080)
             for b in bots:
-                if isCollide(f, b):
+                if isCollide(f, b, b.radius**2):
                     b.area += f.area
                     f.x = random.randint(-1910, 1910)
                     f.y = random.randint(-1080, 1080)
 
         for b in bots:
+            b.x += changex
+            b.y += changey
             b.show()
             b.x += random.choice([speed, 0, -speed])
             b.y += random.choice([speed, 0, -speed])
-            if isBotCollide(b1, b):
+            if isCollide(b1, b, 300):
                 b1.area += b.area
                 b.x = random.randint(-1910, 1910)
                 b.y = random.randint(-1080, 1080)
@@ -134,6 +126,6 @@ yellow = (250, 250, 50)
 speed = 5
 fps = 60
 Clock = pygame.time.Clock()
-foodnum = 100
+
 
 main()
