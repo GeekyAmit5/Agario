@@ -24,7 +24,7 @@ class blob(object):
 
     def show(self):
         if self.radius > 10:
-            if self.radius / self.prevrad > 1.025:
+            if self.radius / self.prevrad > 1.01:
                 self.prevrad = self.radius
                 im.resize((2*self.radius, 2*self.radius)
                           ).save("assets/images/streamworld1.png")

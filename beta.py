@@ -7,13 +7,13 @@ from PIL import Image
 
 
 class blob(object):
-    def __init__(self, x, y, radius, color, speed=5):
+    def __init__(self, x, y, radius, color, speed=5, dir=(-1, 1)):
         self.x = x
         self.y = y
         self.radius = radius
         self.color = color
         self.speed = speed
-        self.dir = (-1, 1)
+        self.dir = dir
         self.radio = 1
         self.area = math.pi * self.radius**2
         self.prevdir = (0, 0)
@@ -27,7 +27,7 @@ class blob(object):
         self.area = math.pi * self.radius**2
 
     def update_radio(self):
-        self.radio = self.area//1000
+        self.radio = self.area//10000
         self.area -= self.radio
 
     def show(self):
@@ -37,20 +37,24 @@ class blob(object):
 def main():
     player = blob(650, 350, 50, red, 5)
     bots = []
-    for i in range(75):
+    for i in range(30):
         bots.append(blob(random.randint(inix, endx), random.randint(
-            iniy, endy), random.randint(20, 100), random.choice(colors)))
+            iniy, endy), random.randint(20, 120), random.choice(colors)))
     foods = []
-    for i in range(250):
+    for i in range(200):
         foods.append(blob(random.randint(inix, endx), random.randint(
-            iniy, endy), random.randint(2, 5), random.choice(colors)))
-    t0 = time.time()
-    botmove = True
+            iniy, endy), random.randint(4, 7), random.choice(colors)))
+    mass = []
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if player.area > 2500:
+                    mass.append(
+                        (blob(player.x+int(player.dir[0]*player.radius), player.y+int(player.dir[1]*player.radius), 20, green, 20, player.dir)))
+                    player.area -= mass[-1].area
         mx, my = pygame.mouse.get_pos()
         x = mx - player.x
         y = my - player.y
@@ -59,12 +63,19 @@ def main():
         else:
             player.dir = (0, 0)
         win.fill(black)
-        t1 = time.time()
-        if t1-t0 > 0.25:
-            t0 = t1
-            botmove = True
-        else:
-            botmove = False
+        for m in mass:
+            m.x -= int(player.dir[0]*player.speed)
+            m.y -= int(player.dir[1]*player.speed)
+            if math.sqrt((m.x-player.x)**2+(m.y-player.y)**2) < player.radius + 200:
+                m.x += int(m.dir[0]*m.speed)
+                m.y += int(m.dir[1]*m.speed)
+            else:
+                m.speed = 0
+            if (m.x-player.x)**2+(m.y-player.y)**2 < player.radius**2-1.25*m.radius**2:
+                player.area += m.area
+                player.update_radius()
+                mass.remove(m)
+            m.show()
         for food in foods:
             food.x -= int(player.dir[0]*player.speed)
             food.y -= int(player.dir[1]*player.speed)
@@ -74,14 +85,13 @@ def main():
                 player.area += food.area
                 player.update_radius()
             for bot in bots:
-                if botmove:
-                    x = bot.prevdir[0]+random.uniform(-0.1, 0.1)
-                    y = bot.prevdir[1]+random.uniform(-0.1, 0.1)
-                    if x**2+y**2:
-                        bot.dir = (x/math.sqrt(x**2+y**2),
-                                   y/math.sqrt(x**2+y**2))
-                    else:
-                        bot.dir = (0, 0)
+                x = bot.prevdir[0] + random.uniform(-1, 1)
+                y = bot.prevdir[1] + random.uniform(-1, 1)
+                if x**2+y**2:
+                    bot.dir = (x/math.sqrt(x**2+y**2),
+                               y/math.sqrt(x**2+y**2))
+                else:
+                    bot.dir = (0, 0)
                 if (bot.x-food.x)**2+(bot.y-food.y)**2 < bot.radius**2-1.25*food.radius**2:
                     food.x = random.randint(inix, endx)
                     food.y = random.randint(inix, endx)
@@ -89,6 +99,10 @@ def main():
                     bot.update_radius()
             food.show()
         for bot in bots:
+            for m in mass:
+                if (bot.x-m.x)**2+(bot.y-m.y)**2 < bot.radius**2-1.25*m.radius**2:
+                    bot.area += m.area
+                    mass.remove(m)
             bot.update_radio()
             bot.update_radius()
             bot.x -= int(player.dir[0]*player.speed)
@@ -104,7 +118,7 @@ def main():
                 bot.update_area()
             elif (bot.x-player.x)**2+(bot.y-player.y)**2 < bot.radius**2-1.25*player.radius**2:
                 win.blit(pygame.font.SysFont(
-                    None, 100).render("GAME OVER", True, white), [100, 200])
+                    None, 200).render("GAME OVER", True, white), [150, 250])
                 bot.area += player.area
                 bot.update_radio()
                 pygame.display.update()
@@ -128,7 +142,7 @@ def main():
                     p.update_area()
             bot.show()
         # player.show()
-        if abs(player.radius-player.prevrad) > 5:
+        if abs(player.radius-player.prevrad) > 7:
             player.prevrad = player.radius
             im.resize((2*player.radius, 2*player.radius)
                       ).save("assets/images/streamworld1.png")
