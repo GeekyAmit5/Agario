@@ -2,6 +2,7 @@ import pygame
 import sys
 import math
 import random
+from PIL import Image
 
 
 class blob(object):
@@ -13,6 +14,7 @@ class blob(object):
         self.speed = speed
         self.dir = (0, 0)
         self.area = math.pi * self.radius**2
+        self.prevrad = 1
 
     def update_radius(self):
         self.radius = int(math.sqrt(self.area / math.pi))
@@ -21,7 +23,15 @@ class blob(object):
         self.area = math.pi * self.radius**2
 
     def show(self):
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+        if self.radius > 10:
+            if self.radius / self.prevrad > 1.025:
+                self.prevrad = self.radius
+                im.resize((2*self.radius, 2*self.radius)
+                          ).save("assets/images/streamworld1.png")
+            win.blit(pygame.image.load("assets/images/streamworld1.png"),
+                     (self.x-self.radius, self.y-self.radius))
+        else:
+            pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 
 def main():
@@ -29,7 +39,7 @@ def main():
     posx = player.x
     posy = player.y
     foods = []
-    for i in range(1000):
+    for i in range(2000):
         foods.append(blob(random.randint(inix, endx), random.randint(
             iniy, endy), random.randint(2, 5), random.choice(colors)))
     while True:
@@ -103,5 +113,8 @@ inix = -500
 iniy = -500
 endx = 1500
 endy = 1100
-name = "AMIT MISHRA"
+name = "AMIT"
+im = Image.open("assets/images/streamworld.png")
+
+
 main()
