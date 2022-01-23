@@ -7,7 +7,7 @@ from PIL import Image
 
 
 class blob(object):
-    def __init__(self, x, y, radius, color, speed=5, dir=(-1, 1)):
+    def __init__(self, x, y, radius, color, speed=5, dir=(random.uniform(-1, 1), random.uniform(-1, 1)), time=random.randint(3, 10), lasttime=time.time()):
         self.x = x
         self.y = y
         self.radius = radius
@@ -16,8 +16,10 @@ class blob(object):
         self.dir = dir
         self.radio = 1
         self.area = math.pi * self.radius**2
-        self.prevdir = (0, 0)
+        self.prevdir = (random.uniform(-1, 1), random.uniform(-1, 1))
         self.prevrad = 1
+        self.time = time
+        self.lasttime = lasttime
         # self.image = random.choice(skins)
 
     def update_radius(self):
@@ -29,6 +31,9 @@ class blob(object):
     def update_radio(self):
         self.radio = self.area//10000
         self.area -= self.radio
+
+    def update_speed(self):
+        self.speed = self.area//10000
 
     def show(self):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
@@ -85,13 +90,6 @@ def main():
                 player.area += food.area
                 player.update_radius()
             for bot in bots:
-                x = bot.prevdir[0] + random.uniform(-1, 1)
-                y = bot.prevdir[1] + random.uniform(-1, 1)
-                if x**2+y**2:
-                    bot.dir = (x/math.sqrt(x**2+y**2),
-                               y/math.sqrt(x**2+y**2))
-                else:
-                    bot.dir = (0, 0)
                 if (bot.x-food.x)**2+(bot.y-food.y)**2 < bot.radius**2-1.25*food.radius**2:
                     food.x = random.randint(inix, endx)
                     food.y = random.randint(inix, endx)
@@ -99,6 +97,14 @@ def main():
                     bot.update_radius()
             food.show()
         for bot in bots:
+            if time.time() - bot.lasttime > bot.time:
+                bot.lasttime = time.time()
+                x = bot.prevdir[0] + random.uniform(-1, 1)
+                y = bot.prevdir[1] + random.uniform(-1, 1)
+                if x**2+y**2:
+                    bot.dir = (x/math.sqrt(x**2+y**2), y/math.sqrt(x**2+y**2))
+                else:
+                    bot.dir = (0, 0)
             for m in mass:
                 if (bot.x-m.x)**2+(bot.y-m.y)**2 < bot.radius**2-1.25*m.radius**2:
                     bot.area += m.area
@@ -174,7 +180,7 @@ inix = -500
 iniy = -500
 endx = 1500
 endy = 1100
-name = "AMIT"
+name = "ELON"
 im = Image.open("assets/images/streamworld.png")
 
 
